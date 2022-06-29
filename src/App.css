@@ -1,0 +1,98 @@
+.app {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: start;
+	align-items: center;
+	padding: 0 0.75rem 5rem 0.75rem;
+}
+.app__title {
+	font-weight: bold;
+	font-size: 5em;
+	color: white;
+}
+.quote__card {
+	display: flex;
+	width: 100%;
+	max-width: 700px;
+	min-height: 6rem;
+	margin: 1.25rem 0;
+}
+.quote__voting {
+	display: flex;
+	flex-direction: column;
+	justify-content: start;
+	align-items: center;
+	padding: 1.25rem;
+	width: 70px;
+}
+.quote__voting p {
+	margin: 0px;
+}
+.quote__voting button {
+	border: none;
+	background: none;
+	cursor: pointer;
+}
+.quote__voting__percent {
+	color: greenyellow;
+	font-weight: bold;
+}
+.quote__voting__total {
+	color: white;
+}
+.quote__content {
+	position: relative;
+	background-color: white;
+	border-radius: 0.5rem;
+	width: 100%;
+	padding: 1.25rem;
+}
+.quote__content__text {
+	margin: 0px;
+}
+.quote__content__author {
+	margin: 0px;
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	margin: 0.75rem;
+	color: #616060;
+	text-transform: uppercase;
+}
+.red {
+	color: #c25c5d;
+}
+.orange {
+	color: #edaa0e;
+}
+.yellow {
+	color: #f2cd12;
+}
+.yellowgreen {
+	color: #cfee20;
+}
+.green {
+	color: #77d125;
+}
+
+.pagination button {
+	color: white;
+	padding: 0.75rem 1.25rem;
+	border-radius: 0.5rem;
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-weight: bold;
+	font-size: 1em;
+	margin: 0 0.25rem;
+}
+
+.pagination__active {
+	background-color: #4caf50 !important;
+	color: white;
+}
+
+.pagination button:hover:not(.active) {
+	background-color: #787a91;
+}
