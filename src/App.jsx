@@ -1,9 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
+import { castDownvote, castUpvote, deleteDownvote, deleteUpvote, getAllQuotes } from "./api/quotesApi";
 import Pagination from "./components/Pagination";
 import Quote from "./components/Quote";
 import "./App.css";
-
-const URL = `http://localhost:3000`;
 
 const App = () => {
 	const [quotesList, setQuotesList] = useState([]);
@@ -12,6 +11,8 @@ const App = () => {
 	const [numberOfQuotes, setNumberOfQuotes] = useState(0);
 	const [currentPage, setCurrentPage] = useState(1);
 	const pageSizeLimit = 5;
+	const [sortDirecton, setSortDirection] = useState("desc");
+	const [sortBy, setSortBy] = useState("author");
 
 	const totalPageCount = useMemo(() => {
 		return Math.ceil(numberOfQuotes / pageSizeLimit);
@@ -25,66 +26,29 @@ const App = () => {
 		return pageNumbers;
 	}, [pageSizeLimit, numberOfQuotes]);
 
-	const fetchQuotes = async (page, pageSize) => {
-		return fetch(`${URL}/quotes?page=${page}&pageSize=${pageSize}`, {
-			method: "GET",
-		}).then((res) => {
-			if (res.ok) {
-				return res.json();
-			} else {
-				Promise.reject("Something went wrong");
-			}
-		});
-	};
-
-	const castVote = async (id, type) => {
-		setVotingStatus("VOTING");
-		return fetch(`${URL}/quotes/${id}/${type}`, {
-			method: "POST",
-		})
-			.then((res) => {
-				if (res.ok) {
-					res.json();
-					setVotingStatus("SUCESS");
-				} else {
-					Promise.reject("Something went wrong");
-				}
-			})
-			.catch((err) => {
-				console.warn(err);
-			});
-	};
-
-	const deleteVote = async (id, type) => {
-		setVotingStatus("DELETING");
-		fetch(`${URL}/quotes/${id}/${type}`, {
-			method: "DELETE",
-		})
-			.then((res) => {
-				if (res.ok) {
-					res.json();
-					setVotingStatus("SUCESS");
-				} else {
-					Promise.reject("Something went wrong");
-				}
-			})
-			.catch((err) => {
-				console.warn(err);
-			});
-	};
-
 	const handleUpVote = async (id) => {
 		switch (findSelectedQuote(id, quotesList).givenVote) {
 			case "none":
-				await castVote(id, "upvote");
+				setVotingStatus("PENDING");
+				castUpvote(id)
+					.then(() => setVotingStatus("SUCCESS"))
+					.catch(() => setVotingStatus("ERROR"));
 				break;
 			case "upvote":
-				await deleteVote(id, "upvote");
+				setVotingStatus("PENDING");
+				deleteUpvote(id)
+					.then(() => setVotingStatus("SUCCESS"))
+					.catch(() => setVotingStatus("ERROR"));
 				break;
 			case "downvote":
-				await Promise.all([await deleteVote(id, "downvote"), await castVote(id, "upvote")]).catch((err) => {
-					console.warn(err);
-				});
+				setVotingStatus("PENDING");
+				deleteDownvote(id)
+					.then(() =>
+						castUpvote(id)
+							.then(() => setVotingStatus("SUCCESS"))
+							.catch(() => setVotingStatus("ERROR"))
+					)
+					.catch(() => setVotingStatus("ERROR"));
 				break;
 		}
 	};
@@ -92,15 +56,26 @@ const App = () => {
 	const handleDownVote = async (id) => {
 		switch (findSelectedQuote(id, quotesList).givenVote) {
 			case "none":
-				await castVote(id, "downvote");
+				setVotingStatus("PENDING");
+				castDownvote(id)
+					.then(() => setVotingStatus("SUCCESS"))
+					.catch(() => setVotingStatus("ERROR"));
 				break;
 			case "downvote":
-				await deleteVote(id, "downvote");
+				setVotingStatus("PENDING");
+				deleteDownvote(id)
+					.then(() => setVotingStatus("SUCCESS"))
+					.catch(() => setVotingStatus("ERROR"));
 				break;
 			case "upvote":
-				await Promise.all([await deleteVote(id, "upvote"), await castVote(id, "downvote")]).catch((err) => {
-					console.warn(err);
-				});
+				setVotingStatus("PENDING");
+				deleteUpvote(id)
+					.then(() =>
+						castDownvote(id)
+							.then(() => setVotingStatus("SUCCESS"))
+							.catch(() => setVotingStatus("ERROR"))
+					)
+					.catch(() => setVotingStatus("ERROR"));
 				break;
 		}
 	};
@@ -123,7 +98,7 @@ const App = () => {
 
 	useEffect(() => {
 		let ignore = false;
-		fetchQuotes(currentPage, pageSizeLimit)
+		getAllQuotes(currentPage, pageSizeLimit, sortDirecton, sortBy)
 			.then((data) => {
 				if (!ignore) {
 					setQuotesList(data.quotes);
@@ -137,7 +112,7 @@ const App = () => {
 		return () => {
 			ignore = true;
 		};
-	}, [votingStatus, currentPage]);
+	}, [votingStatus, currentPage, sortDirecton, sortBy]);
 
 	const renderQuotes = quotesList?.map((quote) => (
 		<Quote
@@ -164,6 +139,18 @@ const App = () => {
 	return (
 		<div className="app">
 			<h1 className="app__title">Quotes</h1>
+			<div className="sorting__filtering">
+				<select defaultValue="desc" onChange={(e) => setSortDirection(e.target.value)}>
+					<option value="desc">Descending</option>
+					<option value="asc">Ascending</option>
+				</select>
+				<select defaultValue="author" onChange={(e) => setSortBy(e.target.value)}>
+					<option value="author">Author</option>
+					<option value="createdAt">Created at</option>
+					<option value="upvotesCount">Upvotes count</option>
+				</select>
+			</div>
+
 			{renderQuotes}
 			<Pagination nextPage={handleNextPage} prevPage={handlePrevPage} pages={pages} current={currentPage} setCurrent={setCurrentPage} />
 		</div>

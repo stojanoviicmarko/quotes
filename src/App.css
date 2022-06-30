@@ -96,3 +96,17 @@
 .pagination button:hover:not(.active) {
 	background-color: #787a91;
 }
+
+.sorting__filtering {
+	display: flex;
+	justify-content: end;
+	align-items: center;
+	width: 100%;
+	max-width: 700px;
+}
+.sorting__filtering select {
+	padding: 0.5rem 0.75rem;
+	margin: 0 0.25rem;
+	border: none;
+	border-radius: 0.25rem;
+}
